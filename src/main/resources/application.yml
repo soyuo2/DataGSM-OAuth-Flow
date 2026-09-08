@@ -1,0 +1,33 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: datagsm-oauth-flow
+
+  security:
+    oauth2:
+      datagsm:
+        client-id: ${DATAGSM_CLIENT_ID:}
+        redirect-uri: ${DATAGSM_REDIRECT_URI:http://localhost:5173/auth/callback}
+        authorization-uri: https://oauth.authorization.datagsm.kr/v1/oauth/authorize
+        token-uri: https://oauth.authorization.datagsm.kr/v1/oauth/token
+        user-info-uri: https://oauth.resource.datagsm.kr/userinfo
+
+server:
+  port: 8080
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    org.springframework.security: INFO

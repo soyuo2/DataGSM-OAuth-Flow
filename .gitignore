@@ -1,0 +1,22 @@
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+.idea/
+*.iml
+
+.DS_Store
+Thumbs.db
+
+*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
