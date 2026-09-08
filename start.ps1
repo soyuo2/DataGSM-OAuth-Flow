@@ -1,48 +1,41 @@
-# .env의 값을 현재 프로세스 환경변수로 올린 뒤 Kotlin BFF와 React를
-# 별도 창 없이 하나의 터미널에서 실행하고 로그를 함께 출력합니다.
+# Load .env and run Kotlin BFF and React in one terminal.
+$OutputEncoding = [System.Text.UTF8Encoding]::new()
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+$null = chcp 65001
+
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $envFile = Join-Path $projectRoot '.env'
-
-if (-not (Test-Path -LiteralPath $envFile)) {
-  Write-Error ".env 파일이 없습니다. .env.example을 복사해 .env를 만든 뒤 값을 입력하세요."
-  exit 1
-}
+if (-not (Test-Path -LiteralPath $envFile)) { Write-Error ".env was not found."; exit 1 }
 
 Get-Content -LiteralPath $envFile | ForEach-Object {
   $line = $_.Trim()
   if ($line -and -not $line.StartsWith('#')) {
     $parts = $line -split '=', 2
     if ($parts.Count -eq 2) {
-      $name = $parts[0].Trim()
-      $value = $parts[1].Trim().Trim('"').Trim("'")
-      [Environment]::SetEnvironmentVariable($name, $value, 'Process')
+      [Environment]::SetEnvironmentVariable($parts[0].Trim(), $parts[1].Trim().Trim('"').Trim("'"), 'Process')
     }
   }
 }
 
-$backendJob = Start-Job -Name 'datagsm-backend' -ScriptBlock {
-  Set-Location $using:projectRoot
-  & .\gradlew.bat bootRun 2>&1
-}
+if ($env:DATAGSM_JAVA_HOME -and (Test-Path -LiteralPath (Join-Path $env:DATAGSM_JAVA_HOME 'bin\java.exe'))) {
+  $env:JAVA_HOME = $env:DATAGSM_JAVA_HOME
+  $env:Path = "$(Join-Path $env:JAVA_HOME 'bin');$env:Path"
+  Write-Host "Java: $env:JAVA_HOME"
+} else { Write-Host 'Java: using the existing JAVA_HOME or PATH configuration' }
 
-$frontendJob = Start-Job -Name 'datagsm-frontend' -ScriptBlock {
-  Set-Location (Join-Path $using:projectRoot 'frontend')
-  npm install 2>&1
-  npm run dev 2>&1
-}
+$backendJob = Start-Job -Name 'datagsm-backend' -ScriptBlock { Set-Location $using:projectRoot; & .\gradlew.bat bootRun 2>&1 }
+$frontendJob = Start-Job -Name 'datagsm-frontend' -ScriptBlock { Set-Location (Join-Path $using:projectRoot 'frontend'); npm install 2>&1; npm run dev 2>&1 }
 
 Write-Host 'Frontend: http://localhost:5173'
 Write-Host 'Kotlin BFF: http://localhost:8080'
-Write-Host '두 서버를 하나의 터미널에서 실행 중입니다. 종료하려면 Ctrl+C를 누르세요.'
-
+Write-Host 'Both servers are running in this terminal. Press Ctrl+C to stop.'
 try {
   while ($backendJob.State -in @('Running', 'NotStarted') -or $frontendJob.State -in @('Running', 'NotStarted')) {
     Receive-Job -Id $backendJob.Id | ForEach-Object { Write-Host '[BE] ' $_ }
     Receive-Job -Id $frontendJob.Id | ForEach-Object { Write-Host '[FE] ' $_ }
     Start-Sleep -Milliseconds 150
   }
-}
-finally {
+} finally {
   Stop-Job -Id $backendJob.Id, $frontendJob.Id -ErrorAction SilentlyContinue
   Remove-Job -Id $backendJob.Id, $frontendJob.Id -Force -ErrorAction SilentlyContinue
 }
