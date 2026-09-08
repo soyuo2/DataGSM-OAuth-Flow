@@ -3,7 +3,9 @@ package com.teamnative.backend.domain.auth.controller
 import com.teamnative.backend.global.config.DataGsmOAuthProperties
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpSession
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -72,9 +74,17 @@ class DataGsmOAuthController(
     }
 
     @GetMapping("/me")
-    fun me(session: HttpSession): Any = restClient.get().uri(properties.userInfoUri)
-        .header("Authorization", "Bearer ${session.getAttribute(ACCESS_TOKEN) ?: error("Not authenticated")}")
-        .retrieve().body(Any::class.java) ?: error("Empty user response")
+    fun me(session: HttpSession): ResponseEntity<Any> {
+        val accessToken = session.getAttribute(ACCESS_TOKEN) as? String
+            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+
+        val user = restClient.get().uri(properties.userInfoUri)
+            .header("Authorization", "Bearer $accessToken")
+            .retrieve().body(Any::class.java)
+            ?: error("Empty user response")
+
+        return ResponseEntity.ok(user)
+    }
 
     private fun randomUrlSafe(bytes: Int): String = Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(bytes).also(SecureRandom()::nextBytes))
 

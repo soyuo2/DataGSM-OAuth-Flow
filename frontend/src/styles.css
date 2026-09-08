@@ -1,9 +1,70 @@
-:root { font-family: Inter, system-ui, sans-serif; color: #172033; background: #eef2f7; }
-body { margin: 0; } main { min-height: 100vh; display: grid; place-items: center; padding: 24px; box-sizing: border-box; }
-.card { width: min(720px, 100%); padding: 40px; border-radius: 24px; background: white; box-shadow: 0 16px 50px #17203318; text-align: center; }
-.eyebrow { color: #4776e6; font-size: 12px; font-weight: 800; letter-spacing: .12em; } h1 { margin: 8px 0; font-size: 36px; } .description { color: #647084; margin-bottom: 28px; }
-.button { display: inline-block; border: 0; border-radius: 10px; padding: 13px 18px; background: #4776e6; color: white; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; } .secondary { background: #647084; }
-pre { overflow: auto; margin-top: 28px; padding: 20px; border-radius: 12px; background: #111827; color: #dbeafe; font-size: 13px; text-align: left; } .error { color: #c0392b; }
-.data-gsm-login-button { display: inline-flex; height: 44px; align-items: center; justify-content: center; gap: 16px; border: 0; border-radius: 8px; padding: 0 16px; background: #000; color: #fff; font: 500 14px Pretendard, sans-serif; cursor: pointer; transition: background .2s, opacity .2s; }
-.data-gsm-login-button:hover { background: #222; } .data-gsm-login-button:disabled { cursor: default; opacity: .7; }
-@media (prefers-color-scheme: dark) { .data-gsm-login-button { background: #fff; color: #000; } .data-gsm-login-button:hover { background: #efefef; } }
+:root {
+  font-family: Pretendard, Inter, system-ui, sans-serif;
+  color: #111;
+  background: #fff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.login-page,
+.student-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.data-gsm-login-button {
+  display: inline-flex;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid #000;
+  border-radius: 8px;
+  padding: 0 20px;
+  background: #fff;
+  color: #000;
+  font: 500 14px Pretendard, Inter, sans-serif;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.icon-light {
+  display: none;
+}
+
+.data-gsm-login-button:hover {
+  background: #000;
+  color: #fff;
+}
+
+.data-gsm-login-button:hover .icon-dark {
+  display: none;
+}
+
+.data-gsm-login-button:hover .icon-light {
+  display: block;
+}
+
+.student-json {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  margin: 0;
+  padding: 24px;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  background: #fff;
+  color: #111;
+  font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
