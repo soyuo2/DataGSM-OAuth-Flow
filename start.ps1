@@ -1,4 +1,5 @@
-# .env의 값을 현재 프로세스 환경변수로 올린 뒤 Kotlin BFF와 React를 시작합니다.
+# .env의 값을 현재 프로세스 환경변수로 올린 뒤 Kotlin BFF와 React를
+# 별도 창 없이 하나의 터미널에서 실행하고 로그를 함께 출력합니다.
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $envFile = Join-Path $projectRoot '.env'
 
@@ -19,7 +20,29 @@ Get-Content -LiteralPath $envFile | ForEach-Object {
   }
 }
 
-Start-Process powershell -ArgumentList '-NoExit', '-Command', "Set-Location '$projectRoot'; .\gradlew.bat bootRun" -WorkingDirectory $projectRoot
-Start-Process powershell -ArgumentList '-NoExit', '-Command', "Set-Location '$projectRoot\frontend'; npm install; npm run dev" -WorkingDirectory (Join-Path $projectRoot 'frontend')
+$backendJob = Start-Job -Name 'datagsm-backend' -ScriptBlock {
+  Set-Location $using:projectRoot
+  & .\gradlew.bat bootRun 2>&1
+}
+
+$frontendJob = Start-Job -Name 'datagsm-frontend' -ScriptBlock {
+  Set-Location (Join-Path $using:projectRoot 'frontend')
+  npm install 2>&1
+  npm run dev 2>&1
+}
+
 Write-Host 'Frontend: http://localhost:5173'
 Write-Host 'Kotlin BFF: http://localhost:8080'
+Write-Host '두 서버를 하나의 터미널에서 실행 중입니다. 종료하려면 Ctrl+C를 누르세요.'
+
+try {
+  while ($backendJob.State -in @('Running', 'NotStarted') -or $frontendJob.State -in @('Running', 'NotStarted')) {
+    Receive-Job -Id $backendJob.Id | ForEach-Object { Write-Host '[BE] ' $_ }
+    Receive-Job -Id $frontendJob.Id | ForEach-Object { Write-Host '[FE] ' $_ }
+    Start-Sleep -Milliseconds 150
+  }
+}
+finally {
+  Stop-Job -Id $backendJob.Id, $frontendJob.Id -ErrorAction SilentlyContinue
+  Remove-Job -Id $backendJob.Id, $frontendJob.Id -Force -ErrorAction SilentlyContinue
+}
