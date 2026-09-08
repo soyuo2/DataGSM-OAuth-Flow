@@ -32,7 +32,7 @@ export default function App() {
   if (student !== null) {
     return (
       <main className="student-page">
-        <pre className="student-json">{JSON.stringify(student, null, 2)}</pre>
+        <pre className="student-json">{JSON.stringify(student, null, 4)}</pre>
       </main>
     )
   }

@@ -64,26 +64,32 @@ class DataGsmOAuthController(
         session.setAttribute(ACCESS_TOKEN, token["access_token"] as? String ?: error("Missing access token"))
         session.removeAttribute(VERIFIER)
         session.removeAttribute(STATE)
-        return RedirectView("/")
+        return RedirectView(frontendRoot())
     }
 
     @GetMapping("/logout")
     fun logout(request: HttpServletRequest): RedirectView {
         request.getSession(false)?.invalidate()
-        return RedirectView("/")
+        return RedirectView(frontendRoot())
     }
 
-    @GetMapping("/me")
+    private fun frontendRoot(): String = properties.frontendBaseUrl.trimEnd('/') + "/"
+
+    @GetMapping("/me", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun me(session: HttpSession): ResponseEntity<Any> {
         val accessToken = session.getAttribute(ACCESS_TOKEN) as? String
-            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .build()
 
         val user = restClient.get().uri(properties.userInfoUri)
             .header("Authorization", "Bearer $accessToken")
             .retrieve().body(Any::class.java)
             ?: error("Empty user response")
 
-        return ResponseEntity.ok(user)
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(user)
     }
 
     private fun randomUrlSafe(bytes: Int): String = Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(bytes).also(SecureRandom()::nextBytes))

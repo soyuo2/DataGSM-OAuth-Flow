@@ -9,4 +9,5 @@ data class DataGsmOAuthProperties(
     val authorizationUri: String,
     val tokenUri: String,
     val userInfoUri: String,
+    val frontendBaseUrl: String,
 )

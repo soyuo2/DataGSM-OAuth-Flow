@@ -15,8 +15,6 @@ body {
 .login-page,
 .student-page {
   min-height: 100vh;
-  display: grid;
-  place-items: center;
   padding: 24px;
 }
 
@@ -54,17 +52,5 @@ body {
 }
 
 .student-json {
-  width: min(720px, 100%);
-  max-height: calc(100vh - 48px);
-  overflow: auto;
   margin: 0;
-  padding: 24px;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
-  background: #fff;
-  color: #111;
-  font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  text-align: left;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
 }
